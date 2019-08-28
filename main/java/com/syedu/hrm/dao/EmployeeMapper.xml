@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.syedu.hrm.dao.EmployeeMapper">
+
+    <resultMap id="empMap" type="Employee" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="cardId" column="CARD_ID"></result>
+        <result property="postCode" column="POST_CODE"></result>
+        <result property="qqNum" column="QQ_NUM"></result>
+        <result property="createDate" column="CREATE_DATE"></result>
+        <association property="dept" column="dept_id" javaType="Dept" select="com.syedu.hrm.dao.DeptMapper.get"></association>
+        <association property="job" column="job_id" javaType="Job" select="com.syedu.hrm.dao.JobMapper.get"></association>
+    </resultMap>
+    <!--添加员工-->
+    <insert id="save" parameterType="Employee">
+        insert into hrm_employee (DEPT_ID,JOB_ID,NAME,CARD_ID,ADDRESS,POST_CODE,TEL,PHONE,QQ_NUM, EMAIL,SEX,PARTY,BIRTHDAY,RACE,EDUCATION
+        ,SPECIALITY,PICTURE,HOBBY,REMARK,CREATE_DATE)
+        values (#{dept.id},#{job.id},#{name},#{cardId},#{address},#{postCode},#{tel},#{phone},#{qqNum},#{email},#{sex},#{party},#{birthday},
+        #{race},#{education},#{speciality},#{picture},#{hobby},#{remark},#{createDate})
+    </insert>
+    <!--查询所有员工-->
+    <select id="find" resultMap="empMap">
+      select * from hrm_employee
+    </select>
+    <!--根据id来搜索员工-->
+    <select id="get" parameterType="int" resultMap="empMap">
+        select * from hrm_employee where id=#{id}
+    </select>
+    <!--更新员工信息-->
+    <update id="update" parameterType="Employee">
+      update hrm_employee set DEPT_ID=#{dept.id},JOB_ID=#{job.id},NAME=#{name},CARD_ID=#{cardId},ADDRESS=#{address},POST_CODE=#{postCode},TEL=#{tel},
+      PHONE=#{phone},QQ_NUM=#{qqNum}, EMAIL=#{email},SEX=#{sex},PARTY=#{party},BIRTHDAY=#{birthday},RACE=#{race},EDUCATION=#{education},
+      SPECIALITY=#{speciality},PICTURE=#{picture},HOBBY=#{hobby},REMARK=#{remark},CREATE_DATE=#{createDate} where id=#{id}
+    </update>
+
+    <!-- 定义通用的查询语句 -->
+    <sql id="select_sql">
+        from hrm_employee
+        <where>
+            <if test="jobId != null">
+                job_id = #{jobId}
+            </if>
+            <if test="name != null">
+                and name like #{name}
+            </if>
+            <if test="cardId != null">
+                and card_id like #{cardId}
+            </if>
+            <if test="sex != null">
+                and sex = #{sex}
+            </if>
+            <if test="phone != null">
+                and phone like #{phone}
+            </if>
+            <if test="deptId != null">
+                and dept_id = #{deptId}
+            </if>
+        </where>
+        order by id ASC
+    </sql>
+    <!-- 结果集映射成实体类: hrm_employee表中的列与 EmployeeInfo实体中的属性进行关联 -->
+    <resultMap type="EmployeeInfo" id="employeeInfoResult" autoMapping="true">
+        <result column="card_id" property="cardId"/>
+        <result column="create_date" property="createDate"/>
+    </resultMap>
+    <!--查询用来导出数据的员工信息-->
+    <select id="findAll" resultMap="employeeInfoResult">
+        SELECT e.id, e.name, e.sex, e.phone, e.EMAIL,
+        j.NAME AS jobName, e.EDUCATION, e.CARD_ID,
+        d.NAME AS deptName, e.ADDRESS, e.CREATE_DATE
+        FROM hrm_employee AS e
+        INNER JOIN hrm_dept AS d ON(e.DEPT_ID=d.ID)
+        INNER JOIN hrm_job AS j ON(e.JOB_ID=j.ID)
+        <where>
+            <if test="jobId != null">
+                e.job_id = #{jobId}
+            </if>
+            <if test="name != null">
+                and e.name like #{name}
+            </if>
+            <if test="cardId != null">
+                and e.card_id like #{cardId}
+            </if>
+            <if test="sex != null">
+                and e.sex = #{sex}
+            </if>
+            <if test="phone != null">
+                and e.phone like #{phone}
+            </if>
+            <if test="deptId != null">
+                and e.dept_id = #{deptId}
+            </if>
+        </where>
+        order by e.id ASC
+    </select>
+    <select id="findByPage" resultMap="empMap" parameterType="hashmap">
+        select * <include refid="select_sql"/>
+    </select>
+</mapper>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.syedu.hrm.dao.NoticeMapper">
+    <!-- 结果集映射成实体类: hrm_notice表中的列与 Notice实体中的属性进行关联 -->
+    <resultMap type="Notice" id="noticeResult" autoMapping="true">
+
+        <result column="CREATE_DATE" property="createDate"/>
+        <!-- 公告与用户存在多对一关联 -->
+        <association property="user" column="user_id" javaType="User" select="com.syedu.hrm.dao.UserMapper.get"/>
+    </resultMap>
+
+ <!-- <insert id="addNotice" parameterType="Notice" useGeneratedKeys="true" keyProperty="id">
+    insert into hrm_notice (TITLE,CONTENT,CREATE_DATE,USER_ID)
+    VALUES (#{title},#{content},#{createDate},#{user.id})
+    </insert>-->
+    <insert id="addNotice" useGeneratedKeys="true" keyProperty="id">
+		insert into hrm_notice(title, content, create_date, user_id)
+			values(#{title}, #{content}, #{createDate}, #{user.id})
+	</insert>
+    <!-- 查询所有公告-->
+    <select id="selectAllNotice" resultMap="noticeResult">
+        select * from hrm_notice
+    </select>
+    <!--根据标题模糊查询公告-->
+    <select id="selectNoticeByTitle" parameterType="string" resultMap="noticeResult">
+        select * from hrm_notice where TITLE like "%"#{title}"%"
+    </select>
+    <!--根据id来进行公告删除-->
+    <delete id="deleteNoticeById" parameterType="int">
+        delete from hrm_notice where id=#{id}
+    </delete>
+    <!--根据id来查找公告-->
+    <select id="selectNoticeById" parameterType="int" resultMap="noticeResult">
+        select * from hrm_notice where id=#{id}
+    </select>
+    <!--根据id来进去公告更新-->
+    <update id="upDateNotice" parameterType="Notice">
+        update hrm_notice set TITLE=#{title},content=#{content},create_date=#{createDate},USER_ID=#{user.id} where id=#{id}
+    </update>
+</mapper>
